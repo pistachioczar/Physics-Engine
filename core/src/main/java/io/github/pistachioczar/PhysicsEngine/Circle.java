@@ -10,6 +10,7 @@ public class Circle extends Object{
     float totalEnergy;
     float momentum;
 
+    //Constructor with input
     Circle(float xPos, float yPos, int rad, int speedX, int speedY, Vec2 gravity) {
         pos.x = xPos;
         pos.y = yPos;
@@ -22,6 +23,7 @@ public class Circle extends Object{
         momentum = kg * velocity.len();
     }
 
+    //Default constructor
     Circle(){
         super();
         radius = 50;
@@ -30,17 +32,25 @@ public class Circle extends Object{
         velocity = new Vec2(0,0);
     }
 
+    //edge collision with side walls
     public boolean EdgeCollisionX(int screenWidth) {
         return this.pos.x + radius >= screenWidth - eps || this.pos.x - radius < eps;
     }
 
+    //edge collision with roof or floor
     public boolean EdgeCollisionY(int screenHeight) {
         return this.pos.y + radius >= screenHeight - eps || this.pos.y - radius <= eps;
     }
+
+    //checks if object is on ground.
     public boolean IsOnGround() {
         return this.pos.y - radius <= eps ;
     }
 
+    /*
+        Handles collisions between a circle and another circle using vector math.
+        It calculates the normal vector between them and their relative velocities.
+     */
     public void ObjectCollision(Circle circle) {
         float dist = this.pos.dst(circle.pos);
 
@@ -54,7 +64,9 @@ public class Circle extends Object{
             if (velocityAlongNormal > 0) return;
 
             //  impulse scalar
-            float j = -(1 + .6f) * velocityAlongNormal; // 1.0f is restitution coefficient
+            float j = -(1 + 1) * velocityAlongNormal; // 1.0f is restitution coefficient
+//            float j = -(1 + .7f) * velocityAlongNormal; // 1.0f is restitution coefficient
+
             j /= 1/this.kg + 1/circle.kg;
 
             // Apply impulse

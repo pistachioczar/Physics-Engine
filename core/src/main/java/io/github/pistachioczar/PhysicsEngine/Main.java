@@ -16,16 +16,20 @@ public class Main extends ApplicationAdapter {
     ScreenViewport screen;
     Circle[] circles;
     int meter = 5;
-    Vec2 gravity = new Vec2(0,-50);
     Force force = new Force();
-    float verticalEnergyLoss = .8f;
-    float horizontalEnergyLoss = .99f;
+    Vec2 gravity = new Vec2(0,0);
+    float verticalEnergyLoss = 1;
+    float horizontalEnergyLoss = 1;
+
+//    Vec2 gravity = new Vec2(0, -5*meter);
+//    float verticalEnergyLoss = .8f;
+//    float horizontalEnergyLoss = .98f;
 
 
     @Override
     public void create(){
         Gdx.graphics.setWindowedMode(screenWidth, screenHeight);
-        circles = SpawnBallsRandom(30);
+        circles = SpawnBallsRandom(100);
 
         shape = new ShapeRenderer();
         screen = new ScreenViewport();
@@ -75,14 +79,14 @@ public class Main extends ApplicationAdapter {
                 circle.pos.x = circle.radius;
             }
             if(circle.pos.x + circle.radius >= screenWidth){
-                circle.pos.x = screenWidth - (circle.radius + 2);
+                circle.pos.x = screenWidth - (circle.radius);
             }
         }
         if(circle.EdgeCollisionY(screenHeight)){
             if(circle.IsOnGround()){
                 circle.pos.y = circle.radius + 2;
             }else{
-                circle.pos.y = screenHeight - (circle.radius+2);
+                circle.pos.y = screenHeight - (circle.radius);
             }
             circle.velocity.y *= -verticalEnergyLoss;
             circle.velocity.x *= horizontalEnergyLoss;
@@ -105,7 +109,7 @@ public class Main extends ApplicationAdapter {
             Circle circle;
 
             Vec2 pos = new Vec2((float) Math.floor(Math.random() * screenWidth), (float) Math.floor(Math.random() * screenHeight));
-            int rad = (int)(20 + Math.random() * 10);
+            int rad = (int)(10 + Math.random() * 20);
             Vec2 velocity = new Vec2((float) Math.floor(50 +Math.random() * 450), 50 + (float) Math.floor(Math.random() * 450));
 
             circle = new Circle(pos.x, pos.y, rad, (int) velocity.x, (int) velocity.y, gravity);

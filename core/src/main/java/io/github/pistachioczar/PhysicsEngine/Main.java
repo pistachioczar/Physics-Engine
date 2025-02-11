@@ -12,11 +12,11 @@ public class Main extends ApplicationAdapter {
 
     ShapeRenderer shape;
     int screenWidth = 1800;
-    int screenHeight = 1200;
+    int screenHeight = 800;
     ScreenViewport screen;
     Circle[] circles;
     int meter = 5;
-    Vec2 gravity = new Vec2(0, 5*meter);
+    Vec2 gravity = new Vec2(0,-50);
     Force force = new Force();
     float verticalEnergyLoss = .8f;
     float horizontalEnergyLoss = .99f;
@@ -25,7 +25,7 @@ public class Main extends ApplicationAdapter {
     @Override
     public void create(){
         Gdx.graphics.setWindowedMode(screenWidth, screenHeight);
-        circles = SpawnBallsRandom(15);
+        circles = SpawnBallsRandom(30);
 
         shape = new ShapeRenderer();
         screen = new ScreenViewport();
@@ -34,13 +34,13 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void render(){
-        ScreenUtils.clear(0,0,0,1);
+        ScreenUtils.clear(1,1,1,1);
         update(Gdx.graphics.getDeltaTime());
 
         shape.begin(ShapeRenderer.ShapeType.Filled);
         for (Circle circle : circles) {
-            shape.setColor(Color.WHITE);
-            shape.circle(circle.pos.x, circle.pos.y, circle.radius);
+            shape.setColor(Color.MAGENTA);
+            shape.circle(circle.pos.x, circle.pos.y, circle.radius, 15);
         }
         shape.end();
 
@@ -71,19 +71,18 @@ public class Main extends ApplicationAdapter {
 
         if(circle.EdgeCollisionX(screenWidth)){
             circle.velocity.x *= -1;
-            if(circle.pos.x <= 0){
+            if(circle.pos.x - circle.radius <= 0){
                 circle.pos.x = circle.radius;
-
             }
-            if(circle.pos.x >= screenWidth){
+            if(circle.pos.x + circle.radius >= screenWidth){
                 circle.pos.x = screenWidth - (circle.radius + 2);
             }
         }
         if(circle.EdgeCollisionY(screenHeight)){
             if(circle.IsOnGround()){
-                circle.pos.y = circle.radius;
+                circle.pos.y = circle.radius + 2;
             }else{
-                circle.pos.y = screenHeight - circle.radius;
+                circle.pos.y = screenHeight - (circle.radius+2);
             }
             circle.velocity.y *= -verticalEnergyLoss;
             circle.velocity.x *= horizontalEnergyLoss;
@@ -106,7 +105,7 @@ public class Main extends ApplicationAdapter {
             Circle circle;
 
             Vec2 pos = new Vec2((float) Math.floor(Math.random() * screenWidth), (float) Math.floor(Math.random() * screenHeight));
-            int rad = (int)(20 + Math.random() * 40);
+            int rad = (int)(20 + Math.random() * 10);
             Vec2 velocity = new Vec2((float) Math.floor(50 +Math.random() * 450), 50 + (float) Math.floor(Math.random() * 450));
 
             circle = new Circle(pos.x, pos.y, rad, (int) velocity.x, (int) velocity.y, gravity);

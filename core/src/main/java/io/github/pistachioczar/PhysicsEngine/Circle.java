@@ -42,13 +42,9 @@ public class Circle extends Object{
     }
 
     public void ObjectCollision(Circle circle) {
-        System.out.println("Checking collision between: " + this + " and " + circle);
         float dist = this.pos.dst(circle.pos);
-        System.out.println("Distance: " + dist);
 
         if (dist <= (circle.radius + this.radius)) {
-            System.out.println("Collision detected!");
-            float mSum = this.kg + circle.kg;
             Vec2 normal = (Vec2) Vec2.Sub(circle.pos, this.pos).nor(); // Normalized collision normal
             Vec2 relativeVelocity = Vec2.Sub(circle.velocity, this.velocity);
 
@@ -58,15 +54,13 @@ public class Circle extends Object{
             if (velocityAlongNormal > 0) return;
 
             //  impulse scalar
-            float j = -(1 + 0.9f) * velocityAlongNormal; // 1.0f is restitution coefficient
+            float j = -(1 + .6f) * velocityAlongNormal; // 1.0f is restitution coefficient
             j /= 1/this.kg + 1/circle.kg;
 
             // Apply impulse
             Vec2 impulse = normal.cpy().Multiply(j);
             this.velocity.add(impulse.cpy().Multiply(-1.0f/this.kg));
             circle.velocity.add(impulse.cpy().Multiply(1.0f/circle.kg));
-
-            System.out.println("Velocities updated - this: " + this.velocity + ", other: " + circle.velocity);
         }
     }
 

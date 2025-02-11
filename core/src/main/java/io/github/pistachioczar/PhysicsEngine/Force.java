@@ -6,7 +6,7 @@ public class Force {
 
 
     public Vector2 gravity(Vec2 vector, Vec2 gravity){
-        vector.y -= gravity.y;
+        vector.add(gravity);
         return vector;
     }
 

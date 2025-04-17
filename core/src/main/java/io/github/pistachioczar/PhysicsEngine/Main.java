@@ -17,12 +17,13 @@ public class Main extends ApplicationAdapter {
     static int screenWidth = 1800;
     static int screenHeight = 800;
     ScreenViewport screen;
-    List<Circle> circles;
-    int meter = 5;
+    static List<Circle> circles;
+    static int meter = 5;
     Force force = new Force();
-    Vec2 gravity = new Vec2(0,0);
-    static float horizontalEnergyLoss = .93f;
+    static Vec2 gravity = new Vec2(0,0);
+    static float horizontalEnergyLoss = .95f;
     static float verticalEnergyLoss = .8f;
+    static int ballRad = 1;
 
 //    Vec2 gravity = new Vec2(0, -5*meter);
 //    float verticalEnergyLoss = .8f;
@@ -40,13 +41,13 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void render(){
-        ScreenUtils.clear(1,1,1,1);
+        ScreenUtils.clear(Color.BLACK);
         update(Gdx.graphics.getDeltaTime());
 
         shape.begin(ShapeRenderer.ShapeType.Filled);
         for (Circle circle : circles) {
-            shape.setColor(Color.MAGENTA);
-            shape.circle(circle.pos.x, circle.pos.y, circle.radius, 15);
+            shape.setColor(Color.GOLD);
+            shape.circle(circle.pos.x, circle.pos.y, circle.radius, 30);
         }
         shape.end();
 
@@ -60,18 +61,7 @@ public class Main extends ApplicationAdapter {
     public void update(double deltaTime){
 
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
-            circles = spawnBall(circles);
-        }else if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) && Gdx.input.isKeyJustPressed(Input.Keys.A)){
-            gravity.y -= meter;
-            System.out.println("test");
-        }else if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) && Gdx.input.isKeyJustPressed(Input.Keys.S)){
-            if(gravity.y < 0){
-                gravity.y += meter;
-            } else {
-                gravity.y = 0;
-            }
-        }
+        keyPressDetection();
 
         for (Circle circle : circles) {
             objectUpdate(deltaTime, circle);
@@ -124,20 +114,49 @@ public class Main extends ApplicationAdapter {
         }
     }
 
-    public List<Circle> spawnBall(List<Circle> circles){
+    public static void spawnBall(List<Circle> circles, int size){
 
             Circle circle;
 
             Vec2 pos = new Vec2((float) Math.floor(Math.random() * screenWidth), (float) Math.floor(Math.random() * screenHeight));
-            int rad = (int)(10 + Math.random() * 20);
             Vec2 velocity = new Vec2((float) Math.floor(50 + Math.random() * 800), 50 + (float) Math.floor(Math.random() * 800));
 
-            circle = new Circle(pos.x, pos.y, rad, (int) velocity.x, (int) velocity.y, 1);
+            circle = new Circle(pos.x, pos.y, size*meter, (int) velocity.x, (int) velocity.y, 1);
 
              circles.add(circle);
 
-        return circles;
     }
 
+    public static void keyPressDetection(){
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
+            spawnBall(circles, ballRad);
+        }else if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) && Gdx.input.isKeyJustPressed(Input.Keys.A)){
+            gravity.y -= 2*meter;
+        }else if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) && Gdx.input.isKeyJustPressed(Input.Keys.S)){
+            if(gravity.y < 0){
+                gravity.y += 2*meter;
+            } else {
+                gravity.y = 0;
+            }
+        }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)){
+            ballRad = 2;
+        }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)){
+            ballRad = 4;
+        }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)){
+            ballRad = 6;
+        }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_4)){
+            ballRad = 8;
+        }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_5)){
+            ballRad = 10;
+        }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_6)){
+            ballRad = 12;
+        }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_7)){
+            ballRad = 14;
+        } else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_8)){
+            ballRad = 16;
+        } else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_9)){
+            ballRad = 18;
+        }
+    }
 
 }

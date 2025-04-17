@@ -9,18 +9,20 @@ public class Circle extends Object{
     float potentialEnergy;
     float totalEnergy;
     float momentum;
-
+    float collisionLoss;
     //Constructor with input
-    Circle(float xPos, float yPos, int rad, int speedX, int speedY, Vec2 gravity) {
-        pos.x = xPos;
-        pos.y = yPos;
-        radius = rad;
-        velocity = new Vec2(speedX, speedY);
-        kg  = (float) (Math.PI * (radius * radius));
-        kineticEnergy = (float) (.5 * kg * velocity.len());
-        potentialEnergy = kg*pos.y;
-        totalEnergy = potentialEnergy + kineticEnergy;
-        momentum = kg * velocity.len();
+    Circle(float xPos, float yPos, int rad, int speedX, int speedY, float collisionLoss) {
+        this.pos.x = xPos;
+        this.pos.y = yPos;
+        this.radius = rad;
+        this.velocity = new Vec2(speedX, speedY);
+        this.kg  = (float) (Math.PI * (radius * radius));
+        this.kineticEnergy = (float) (.5 * kg * velocity.len());
+        this.potentialEnergy = kg*pos.y;
+        this.totalEnergy = potentialEnergy + kineticEnergy;
+        this.momentum = kg * velocity.len();
+        this.collisionLoss = collisionLoss;
+
     }
 
     //Default constructor
@@ -64,7 +66,7 @@ public class Circle extends Object{
             if (velocityAlongNormal > 0) return;
 
             //  impulse scalar
-            float j = -(1 + 1) * velocityAlongNormal; // 1.0f is restitution coefficient
+            float j = -(1 + collisionLoss) * velocityAlongNormal; // 1.0f is restitution coefficient
 //            float j = -(1 + .7f) * velocityAlongNormal; // 1.0f is restitution coefficient
 
             j /= 1/this.kg + 1/circle.kg;

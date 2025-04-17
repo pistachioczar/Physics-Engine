@@ -1,25 +1,28 @@
 package io.github.pistachioczar.PhysicsEngine;
 
+import java.util.*;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.*;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends ApplicationAdapter {
 
     ShapeRenderer shape;
-    int screenWidth = 1800;
-    int screenHeight = 800;
+    static int screenWidth = 1800;
+    static int screenHeight = 800;
     ScreenViewport screen;
-    Circle[] circles;
+    List<Circle> circles;
     int meter = 5;
     Force force = new Force();
     Vec2 gravity = new Vec2(0,0);
-    float verticalEnergyLoss = 1;
-    float horizontalEnergyLoss = 1;
+    static float horizontalEnergyLoss = .93f;
+    static float verticalEnergyLoss = .8f;
 
 //    Vec2 gravity = new Vec2(0, -5*meter);
 //    float verticalEnergyLoss = .8f;
@@ -29,8 +32,7 @@ public class Main extends ApplicationAdapter {
     @Override
     public void create(){
         Gdx.graphics.setWindowedMode(screenWidth, screenHeight);
-        circles = SpawnBallsRandom(100);
-
+        circles = new ArrayList<>();
         shape = new ShapeRenderer();
         screen = new ScreenViewport();
 
@@ -57,6 +59,20 @@ public class Main extends ApplicationAdapter {
 
     public void update(double deltaTime){
 
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
+            circles = spawnBall(circles);
+        }else if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) && Gdx.input.isKeyJustPressed(Input.Keys.A)){
+            gravity.y -= meter;
+            System.out.println("test");
+        }else if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) && Gdx.input.isKeyJustPressed(Input.Keys.S)){
+            if(gravity.y < 0){
+                gravity.y += meter;
+            } else {
+                gravity.y = 0;
+            }
+        }
+
         for (Circle circle : circles) {
             objectUpdate(deltaTime, circle);
         }
@@ -73,6 +89,21 @@ public class Main extends ApplicationAdapter {
         circle.pos.x += (float) (circle.velocity.x * deltaTime);
         circle.pos.y += (float) (circle.velocity.y * deltaTime);
 
+        wallCollision(circle);
+
+        int n = circles.size();
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                circles.get(i).ObjectCollision(circles.get(j));
+            }
+        }
+
+        if(!circle.IsOnGround()){
+            circle.velocity = (Vec2) force.gravity(circle.velocity, gravity);
+        }
+    }
+
+    public static void wallCollision(Circle circle){
         if(circle.EdgeCollisionX(screenWidth)){
             circle.velocity.x *= -1;
             if(circle.pos.x - circle.radius <= 0){
@@ -84,38 +115,26 @@ public class Main extends ApplicationAdapter {
         }
         if(circle.EdgeCollisionY(screenHeight)){
             if(circle.IsOnGround()){
-                circle.pos.y = circle.radius + 2;
+                circle.pos.y = circle.radius ;
             }else{
-                circle.pos.y = screenHeight - (circle.radius);
+                circle.pos.y = screenHeight - (circle.radius + 2);
             }
             circle.velocity.y *= -verticalEnergyLoss;
             circle.velocity.x *= horizontalEnergyLoss;
         }
-        for (int i = 0; i < circles.length; i++) {
-            for (int j = i + 1; j < circles.length; j++) {
-                circles[i].ObjectCollision(circles[j]);
-            }
-        }
-
-        if(!circle.IsOnGround()){
-            circle.velocity = (Vec2) force.gravity(circle.velocity, gravity);
-        }
     }
 
-    public Circle[] SpawnBallsRandom(int amount){
+    public List<Circle> spawnBall(List<Circle> circles){
 
-        Circle[] circles = new Circle[amount];
-        for(int i = 0; i < amount; i++){
             Circle circle;
 
             Vec2 pos = new Vec2((float) Math.floor(Math.random() * screenWidth), (float) Math.floor(Math.random() * screenHeight));
             int rad = (int)(10 + Math.random() * 20);
-            Vec2 velocity = new Vec2((float) Math.floor(50 +Math.random() * 450), 50 + (float) Math.floor(Math.random() * 450));
+            Vec2 velocity = new Vec2((float) Math.floor(50 + Math.random() * 800), 50 + (float) Math.floor(Math.random() * 800));
 
-            circle = new Circle(pos.x, pos.y, rad, (int) velocity.x, (int) velocity.y, gravity);
+            circle = new Circle(pos.x, pos.y, rad, (int) velocity.x, (int) velocity.y, 1);
 
-            circles[i] = circle;
-        }
+             circles.add(circle);
 
         return circles;
     }

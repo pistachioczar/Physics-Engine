@@ -78,6 +78,10 @@ public class Circle extends Object{
         }
     }
 
+    public void dragCircle(float mouseX, float mouseY){
+        this.velocity.add(mouseX, mouseY);
+    }
+
 
 
 }

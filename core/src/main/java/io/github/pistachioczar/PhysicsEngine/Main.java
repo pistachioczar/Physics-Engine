@@ -16,7 +16,7 @@ public class Main extends ApplicationAdapter {
 
     ShapeRenderer shape;
     static int screenWidth = 1800;
-    static int screenHeight = 1400;
+    static int screenHeight = 1000;
     ScreenViewport screen;
     static List<Circle> circles;
     static int meter = 5;
@@ -25,8 +25,9 @@ public class Main extends ApplicationAdapter {
     static boolean collisionEnergyLoss = true;
     static float horizontalEnergyLoss = 1;
     static float verticalEnergyLoss = 1;
-    static int ballRad = 1;
+    static int ballRad = 2;
     static DragInput dragInput = new DragInput();
+    static boolean pause = false;
 
 
     @Override
@@ -64,8 +65,10 @@ public class Main extends ApplicationAdapter {
 
         keyPressDetection();
 
-        for (Circle circle : circles) {
-            objectUpdate(deltaTime, circle);
+        if(!pause){
+            for (Circle circle : circles) {
+                objectUpdate(deltaTime, circle);
+            }
         }
     }
 
@@ -83,10 +86,14 @@ public class Main extends ApplicationAdapter {
         wallCollision(circle);
 
         int n = circles.size();
-        for (int i = 0; i < n; i++) {
-            for (int j = i + 1; j < n; j++) {
-                circles.get(i).ObjectCollision(circles.get(j));
-            }
+//        for (int i = 0; i < n; i++) {
+//            for (int j = i + 1; j < n; j++) {
+//                circles.get(i).ObjectCollision(circles.get(j));
+//            }
+//        }
+//        }
+        for (Circle value : circles) {
+            circle.ObjectCollision(value);
         }
 
         if(!circle.IsOnGround()){
@@ -145,6 +152,7 @@ public class Main extends ApplicationAdapter {
             //Subtract y from screen height because the getY returns coords with top left origin, and it needs to be translated
             //to bottom left origin coordinates
             spawnBall(circles, ballRad, (int) dragInput.getInitialMousePosition().x, (int) (screenHeight - dragInput.getInitialMousePosition().y), dragInput.getDragDifference().scl(2));
+            //makes it so drag difference goes back to null.
             dragInput.resetDrag();
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
             if (!collisionEnergyLoss) {
@@ -165,6 +173,8 @@ public class Main extends ApplicationAdapter {
             } else {
                 gravity.y = 0;
             }
+        }else if(Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+            pause = !pause;
         }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)){
             ballRad = 2;
         }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)){

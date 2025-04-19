@@ -57,7 +57,7 @@ public class DragInput implements InputProcessor {
             finalMousePosition.set(screenX, screenY);
             isDragging = false;
             dragDifference.set(finalMousePosition).sub(initialMousePosition);
-            dragDifference.x = -1 * dragDifference.x;
+            dragDifference.x = -dragDifference.x;
             dragCompleted = true;
             return true;
         }

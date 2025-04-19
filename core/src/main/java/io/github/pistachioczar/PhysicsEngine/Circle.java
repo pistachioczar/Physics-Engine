@@ -1,15 +1,15 @@
 package io.github.pistachioczar.PhysicsEngine;
 
 public class Circle extends Object{
-    int radius;
-    int eps = 1;
-    Vec2 velocity;
-    float kg;
-    float kineticEnergy;
-    float potentialEnergy;
-    float totalEnergy;
-    float momentum;
-    float collisionLoss;
+    public int radius;
+    public int eps = 1;
+    public Vec2 velocity;
+    public float kg;
+    public float kineticEnergy;
+    public float potentialEnergy;
+    public float totalEnergy;
+    public float momentum;
+    public float collisionLoss;
     //Constructor with input
     Circle(float xPos, float yPos, int rad, int speedX, int speedY, float collisionLoss) {
         this.pos.x = xPos;

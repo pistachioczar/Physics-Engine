@@ -5,6 +5,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.Input;
@@ -15,19 +16,17 @@ public class Main extends ApplicationAdapter {
 
     ShapeRenderer shape;
     static int screenWidth = 1800;
-    static int screenHeight = 800;
+    static int screenHeight = 1400;
     ScreenViewport screen;
     static List<Circle> circles;
     static int meter = 5;
     Force force = new Force();
     static Vec2 gravity = new Vec2(0,0);
-    static float horizontalEnergyLoss = .95f;
-    static float verticalEnergyLoss = .8f;
+    static boolean collisionEnergyLoss = true;
+    static float horizontalEnergyLoss = 1;
+    static float verticalEnergyLoss = 1;
     static int ballRad = 1;
-
-//    Vec2 gravity = new Vec2(0, -5*meter);
-//    float verticalEnergyLoss = .8f;
-//    float horizontalEnergyLoss = .98f;
+    static DragInput dragInput = new DragInput();
 
 
     @Override
@@ -36,6 +35,7 @@ public class Main extends ApplicationAdapter {
         circles = new ArrayList<>();
         shape = new ShapeRenderer();
         screen = new ScreenViewport();
+        Gdx.input.setInputProcessor(dragInput);
 
     }
 
@@ -43,6 +43,7 @@ public class Main extends ApplicationAdapter {
     public void render(){
         ScreenUtils.clear(Color.BLACK);
         update(Gdx.graphics.getDeltaTime());
+
 
         shape.begin(ShapeRenderer.ShapeType.Filled);
         for (Circle circle : circles) {
@@ -114,22 +115,48 @@ public class Main extends ApplicationAdapter {
         }
     }
 
-    public static void spawnBall(List<Circle> circles, int size){
-
+    public static void spawnBall(List<Circle> circles, int size, int x, int y, Vector2 velocity){
             Circle circle;
+            float loss = 1f;
 
-            Vec2 pos = new Vec2((float) Math.floor(Math.random() * screenWidth), (float) Math.floor(Math.random() * screenHeight));
-            Vec2 velocity = new Vec2((float) Math.floor(50 + Math.random() * 800), 50 + (float) Math.floor(Math.random() * 800));
+            if (collisionEnergyLoss){
+                loss = .8f;
+            }
 
-            circle = new Circle(pos.x, pos.y, size*meter, (int) velocity.x, (int) velocity.y, 1);
+            circle = new Circle(x, y, size*meter, (int) velocity.x, (int) velocity.y, loss);
+            circles.add(circle);
+    }
 
-             circles.add(circle);
-
+    public static void changeLoss() {
+        if(!collisionEnergyLoss) {
+            for (Circle circle : circles) {
+                circle.collisionLoss = .8f;
+            }
+        } else {
+            for (Circle circle : circles) {
+                circle.collisionLoss = 1f;
+            }
+        }
     }
 
     public static void keyPressDetection(){
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
-            spawnBall(circles, ballRad);
+
+        if(!dragInput.isDragging() && dragInput.getDragDifference() != null){
+            //Subtract y from screen height because the getY returns coords with top left origin, and it needs to be translated
+            //to bottom left origin coordinates
+            spawnBall(circles, ballRad, (int) dragInput.getInitialMousePosition().x, (int) (screenHeight - dragInput.getInitialMousePosition().y), dragInput.getDragDifference().scl(2));
+            dragInput.resetDrag();
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
+            if (!collisionEnergyLoss) {
+                horizontalEnergyLoss = 1;
+                verticalEnergyLoss = 1;
+                collisionEnergyLoss = true;
+            } else {
+                horizontalEnergyLoss = .95f;
+                verticalEnergyLoss = .8f;
+                collisionEnergyLoss = false;
+            }
+            changeLoss();
         }else if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) && Gdx.input.isKeyJustPressed(Input.Keys.A)){
             gravity.y -= 2*meter;
         }else if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) && Gdx.input.isKeyJustPressed(Input.Keys.S)){

@@ -4,6 +4,9 @@ import java.util.*;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -15,28 +18,35 @@ import com.badlogic.gdx.Input.*;
 public class Main extends ApplicationAdapter {
 
     ShapeRenderer shape;
-    static int screenWidth = 1800;
-    static int screenHeight = 1000;
+    Batch batch;
+    static int screenWidth;
+    static int screenHeight;
     ScreenViewport screen;
     static List<Circle> circles;
     static int meter = 5;
     Force force = new Force();
     static Vec2 gravity = new Vec2(0,0);
-    static boolean collisionEnergyLoss = true;
-    static float horizontalEnergyLoss = 1;
-    static float verticalEnergyLoss = 1;
+    static boolean collisionEnergyLoss = false;
+    static float  horizontalEnergyLoss = 1f;
+    static float verticalEnergyLoss = 1f;
     static int ballRad = 2;
     static DragInput dragInput = new DragInput();
     static boolean pause = false;
+    BitmapFont font;
 
 
     @Override
     public void create(){
-        Gdx.graphics.setWindowedMode(screenWidth, screenHeight);
+        Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
+        screenWidth = Gdx.graphics.getWidth();
+        screenHeight = Gdx.graphics.getHeight();
         circles = new ArrayList<>();
         shape = new ShapeRenderer();
+        batch = new SpriteBatch();
         screen = new ScreenViewport();
+        font = new BitmapFont();
         Gdx.input.setInputProcessor(dragInput);
+
 
     }
 
@@ -45,15 +55,48 @@ public class Main extends ApplicationAdapter {
         ScreenUtils.clear(Color.BLACK);
         update(Gdx.graphics.getDeltaTime());
 
-
         shape.begin(ShapeRenderer.ShapeType.Filled);
         for (Circle circle : circles) {
             shape.setColor(Color.GOLD);
             shape.circle(circle.pos.x, circle.pos.y, circle.radius, 30);
         }
+        renderBallSpawn(shape);
+        if(pause){
+            renderPause(shape);
+        }
+
         shape.end();
 
+        batch.begin();
+        font.getData().setScale(2);
+        font.draw(batch, Integer.toString(circles.size()), 30, screenHeight - 30);
+        font.draw(batch, "Energy Loss: " + collisionEnergyLoss, 30, screenHeight - 60);
+        font.draw(batch, "Gravity: " + gravity.y/-10, 30, screenHeight - 90);
+        batch.end();
+
     }
+
+    public static void renderPause(ShapeRenderer shape){
+        shape.setColor(Color.WHITE);
+        float pauseWidth = 15;
+        float pauseHeight = 50;
+
+        Vector2 center = new Vector2((float) screenWidth / 2, (float) screenHeight / 2);
+        shape.rect(center.x + 15, center.y - pauseHeight/2, pauseWidth,pauseHeight);
+        shape.rect(center.x - 15, center.y - pauseHeight/2, pauseWidth,pauseHeight);
+    }
+
+    public static void renderBallSpawn(ShapeRenderer shape){
+        if(dragInput.isDragging()){
+            shape.setColor(Color.LIGHT_GRAY);
+            shape.circle(dragInput.getInitialMousePosition().x, screenHeight - dragInput.getInitialMousePosition().y, ballRad*meter);
+
+            Vector2 currentMousePosition = new Vector2(Gdx.input.getX(), screenHeight - Gdx.input.getY());
+            Vector2 initialMousePosition = new Vector2(dragInput.getInitialMousePosition().x, screenHeight - dragInput.getInitialMousePosition().y);
+            shape.rectLine(initialMousePosition, currentMousePosition, ballRad);
+        }
+    }
+
 
     @Override
     public void dispose(){
@@ -64,7 +107,6 @@ public class Main extends ApplicationAdapter {
 
 
         keyPressDetection();
-
         if(!pause){
             for (Circle circle : circles) {
                 objectUpdate(deltaTime, circle);
@@ -74,9 +116,7 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void resize(int width, int height) {
-        screen.update(screenWidth, screenHeight, true); // Update the viewport on resize
-        screenWidth = (int) screen.getWorldWidth(); // Get the viewport width
-        screenHeight = (int) screen.getWorldHeight(); // Get the viewport height
+        screen.update(screenWidth, screenHeight, true);
     }
 
     public void objectUpdate(double deltaTime, Circle circle){
@@ -85,13 +125,6 @@ public class Main extends ApplicationAdapter {
 
         wallCollision(circle);
 
-        int n = circles.size();
-//        for (int i = 0; i < n; i++) {
-//            for (int j = i + 1; j < n; j++) {
-//                circles.get(i).ObjectCollision(circles.get(j));
-//            }
-//        }
-//        }
         for (Circle value : circles) {
             circle.ObjectCollision(value);
         }
@@ -126,7 +159,7 @@ public class Main extends ApplicationAdapter {
             Circle circle;
             float loss = 1f;
 
-            if (collisionEnergyLoss){
+            if (!collisionEnergyLoss){
                 loss = .8f;
             }
 
@@ -135,7 +168,7 @@ public class Main extends ApplicationAdapter {
     }
 
     public static void changeLoss() {
-        if(!collisionEnergyLoss) {
+        if(collisionEnergyLoss) {
             for (Circle circle : circles) {
                 circle.collisionLoss = .8f;
             }
@@ -155,19 +188,19 @@ public class Main extends ApplicationAdapter {
             //makes it so drag difference goes back to null.
             dragInput.resetDrag();
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
-            if (!collisionEnergyLoss) {
+            if (collisionEnergyLoss) {
                 horizontalEnergyLoss = 1;
                 verticalEnergyLoss = 1;
-                collisionEnergyLoss = true;
+                collisionEnergyLoss = false;
             } else {
                 horizontalEnergyLoss = .95f;
                 verticalEnergyLoss = .8f;
-                collisionEnergyLoss = false;
+                collisionEnergyLoss = true;
             }
             changeLoss();
-        }else if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) && Gdx.input.isKeyJustPressed(Input.Keys.A)){
+        }else if (Gdx.input.isKeyJustPressed(Input.Keys.A)){
             gravity.y -= 2*meter;
-        }else if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) && Gdx.input.isKeyJustPressed(Input.Keys.S)){
+        }else if (Gdx.input.isKeyJustPressed(Input.Keys.S)){
             if(gravity.y < 0){
                 gravity.y += 2*meter;
             } else {
@@ -193,7 +226,14 @@ public class Main extends ApplicationAdapter {
             ballRad = 16;
         } else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_9)){
             ballRad = 18;
+        } else if(Gdx.input.isKeyJustPressed(Input.Keys.R)){
+            circles.clear();
+        } else if(Gdx.input.isKeyJustPressed(Input.Keys.Q)){
+            Gdx.app.exit();
+            System.exit(-1);
         }
     }
+
+
 
 }

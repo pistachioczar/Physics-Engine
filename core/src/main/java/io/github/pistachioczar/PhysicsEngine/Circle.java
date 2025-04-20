@@ -66,9 +66,7 @@ public class Circle extends Object{
             if (velocityAlongNormal > 0) return;
 
             //  impulse scalar
-            float j = -(1 + collisionLoss) * velocityAlongNormal; // 1.0f is restitution coefficient
-//            float j = -(1 + .7f) * velocityAlongNormal; // 1.0f is restitution coefficient
-
+            float j = -(1 + collisionLoss) * velocityAlongNormal; // collision loss is a number between 0 and 1 where 1 means no energy is lost and 0 means all is lost
             j /= 1/this.kg + 1/circle.kg;
 
             // Apply impulse
@@ -76,10 +74,6 @@ public class Circle extends Object{
             this.velocity.add(impulse.cpy().Multiply(-1.0f/this.kg));
             circle.velocity.add(impulse.cpy().Multiply(1.0f/circle.kg));
         }
-    }
-
-    public void dragCircle(float mouseX, float mouseY){
-        this.velocity.add(mouseX, mouseY);
     }
 
 

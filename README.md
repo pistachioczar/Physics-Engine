@@ -39,3 +39,13 @@ Features
     cd your-repo-name
 ```
 2. **Run JAR File in /out/artifacts
+
+---
+
+## Bugs to be fixed
+
+- The particles will gain a little bit of velocity when no energy loss mode is on.
+- Particles will get jittery and not rest when gravity is high.
+
+---
+<img src="PhysicsTutorial.gif">

@@ -24,15 +24,15 @@ public class Main extends ApplicationAdapter {
     ScreenViewport screen;
     static List<Circle> circles;
     static int meter = 5;
-    Force force = new Force();
     static Vec2 gravity = new Vec2(0,0);
     static boolean collisionEnergyLoss = false;
-    static float  horizontalEnergyLoss = 1f;
-    static float verticalEnergyLoss = 1f;
     static int ballRad = 2;
     static DragInput dragInput = new DragInput();
     static boolean pause = false;
     BitmapFont font;
+    static ColorScheme[] colors;
+    static int colorSelection;
+    static PhysicsEngine engine;
 
 
     @Override
@@ -46,18 +46,24 @@ public class Main extends ApplicationAdapter {
         screen = new ScreenViewport();
         font = new BitmapFont();
         Gdx.input.setInputProcessor(dragInput);
+        ColorScheme background1 = new ColorScheme(Color.BLACK, Color.GOLD);
+        ColorScheme background2 = new ColorScheme(Color.WHITE, Color.BLACK);
+        ColorScheme background3 = new ColorScheme(Color.BLACK, Color.WHITE);
+        colors = new ColorScheme[] {background1, background2, background3};
+        colorSelection = 0;
+        engine = new PhysicsEngine(screenWidth, screenHeight, gravity, false, 1f, 1f);
 
 
     }
 
     @Override
     public void render(){
-        ScreenUtils.clear(Color.BLACK);
+        ScreenUtils.clear(colors[colorSelection].BackgroundColor);
         update(Gdx.graphics.getDeltaTime());
 
         shape.begin(ShapeRenderer.ShapeType.Filled);
-        for (Circle circle : circles) {
-            shape.setColor(Color.GOLD);
+        for (Circle circle : engine.circles) {
+            shape.setColor(colors[colorSelection].ObjectColor);
             shape.circle(circle.pos.x, circle.pos.y, circle.radius, 30);
         }
         renderBallSpawn(shape);
@@ -69,9 +75,9 @@ public class Main extends ApplicationAdapter {
 
         batch.begin();
         font.getData().setScale(2);
-        font.draw(batch, Integer.toString(circles.size()), 30, screenHeight - 30);
-        font.draw(batch, "Energy Loss: " + collisionEnergyLoss, 30, screenHeight - 60);
-        font.draw(batch, "Gravity: " + gravity.y/-10, 30, screenHeight - 90);
+        font.draw(batch, Integer.toString(engine.circles.size()), 30, screenHeight - 30);
+        font.draw(batch, "Energy Loss: " + engine.energyLoss, 30, screenHeight - 60);
+        font.draw(batch, "Gravity: " + engine.gravity.y/-10, 30, engine.screenHeight - 90);
         batch.end();
 
     }
@@ -89,7 +95,7 @@ public class Main extends ApplicationAdapter {
     public static void renderBallSpawn(ShapeRenderer shape){
         if(dragInput.isDragging()){
             shape.setColor(Color.LIGHT_GRAY);
-            shape.circle(dragInput.getInitialMousePosition().x, screenHeight - dragInput.getInitialMousePosition().y, ballRad*meter);
+            shape.circle(dragInput.getInitialMousePosition().x, screenHeight - dragInput.getInitialMousePosition().y, engine.ballRad*meter);
 
             Vector2 currentMousePosition = new Vector2(Gdx.input.getX(), screenHeight - Gdx.input.getY());
             Vector2 initialMousePosition = new Vector2(dragInput.getInitialMousePosition().x, screenHeight - dragInput.getInitialMousePosition().y);
@@ -108,9 +114,7 @@ public class Main extends ApplicationAdapter {
 
         keyPressDetection();
         if(!pause){
-            for (Circle circle : circles) {
-                objectUpdate(deltaTime, circle);
-            }
+            engine.update(deltaTime);
         }
     }
 
@@ -119,116 +123,65 @@ public class Main extends ApplicationAdapter {
         screen.update(screenWidth, screenHeight, true);
     }
 
-    public void objectUpdate(double deltaTime, Circle circle){
-        circle.pos.x += (float) (circle.velocity.x * deltaTime);
-        circle.pos.y += (float) (circle.velocity.y * deltaTime);
-
-        wallCollision(circle);
-
-        for (Circle value : circles) {
-            circle.ObjectCollision(value);
-        }
-
-        if(!circle.IsOnGround()){
-            circle.velocity = (Vec2) force.gravity(circle.velocity, gravity);
-        }
-    }
-
-    public static void wallCollision(Circle circle){
-        if(circle.EdgeCollisionX(screenWidth)){
-            circle.velocity.x *= -1;
-            if(circle.pos.x - circle.radius <= 0){
-                circle.pos.x = circle.radius;
-            }
-            if(circle.pos.x + circle.radius >= screenWidth){
-                circle.pos.x = screenWidth - (circle.radius);
-            }
-        }
-        if(circle.EdgeCollisionY(screenHeight)){
-            if(circle.IsOnGround()){
-                circle.pos.y = circle.radius ;
-            }else{
-                circle.pos.y = screenHeight - (circle.radius + 2);
-            }
-            circle.velocity.y *= -verticalEnergyLoss;
-            circle.velocity.x *= horizontalEnergyLoss;
-        }
-    }
-
-    public static void spawnBall(List<Circle> circles, int size, int x, int y, Vector2 velocity){
-            Circle circle;
-            float loss = 1f;
-
-            if (!collisionEnergyLoss){
-                loss = .8f;
-            }
-
-            circle = new Circle(x, y, size*meter, (int) velocity.x, (int) velocity.y, loss);
-            circles.add(circle);
-    }
-
-    public static void changeLoss() {
-        if(collisionEnergyLoss) {
-            for (Circle circle : circles) {
-                circle.collisionLoss = .8f;
-            }
-        } else {
-            for (Circle circle : circles) {
-                circle.collisionLoss = 1f;
-            }
-        }
-    }
 
     public static void keyPressDetection(){
 
         if(!dragInput.isDragging() && dragInput.getDragDifference() != null){
             //Subtract y from screen height because the getY returns coords with top left origin, and it needs to be translated
             //to bottom left origin coordinates
-            spawnBall(circles, ballRad, (int) dragInput.getInitialMousePosition().x, (int) (screenHeight - dragInput.getInitialMousePosition().y), dragInput.getDragDifference().scl(2));
+            engine.addBall(ballRad, (int) dragInput.getInitialMousePosition().x, (int) (screenHeight - dragInput.getInitialMousePosition().y), dragInput.getDragDifference().scl(2));
             //makes it so drag difference goes back to null.
             dragInput.resetDrag();
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
+        } else if(Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)){
+            engine.addBall(ballRad, Gdx.input.getX(), screenHeight - Gdx.input.getY(),new Vector2(0,0));
+        }
+        else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
             if (collisionEnergyLoss) {
-                horizontalEnergyLoss = 1;
-                verticalEnergyLoss = 1;
-                collisionEnergyLoss = false;
+                engine.horizontalEnergyLoss = 1;
+                engine.verticalEnergyLoss = 1;
+                engine.energyLoss = false;
             } else {
-                horizontalEnergyLoss = .95f;
-                verticalEnergyLoss = .8f;
-                collisionEnergyLoss = true;
+                engine.horizontalEnergyLoss = .95f;
+                engine.verticalEnergyLoss = .8f;
+                engine.energyLoss = true;
             }
-            changeLoss();
+            engine.changeLoss();
         }else if (Gdx.input.isKeyJustPressed(Input.Keys.A)){
-            gravity.y -= 2*meter;
+            engine.gravity.y -= 2*meter;
         }else if (Gdx.input.isKeyJustPressed(Input.Keys.S)){
-            if(gravity.y < 0){
-                gravity.y += 2*meter;
+            if(engine.gravity.y < 0){
+                engine.gravity.y += 2*meter;
             } else {
-                gravity.y = 0;
+                engine.gravity.y = 0;
             }
         }else if(Gdx.input.isKeyJustPressed(Input.Keys.P)) {
             pause = !pause;
         }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)){
-            ballRad = 2;
+            engine.ballRad = 2;
         }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)){
-            ballRad = 4;
+            engine.ballRad = 4;
         }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)){
-            ballRad = 6;
+            engine.ballRad = 6;
         }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_4)){
-            ballRad = 8;
+            engine.ballRad = 8;
         }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_5)){
-            ballRad = 10;
+            engine.ballRad = 10;
         }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_6)){
-            ballRad = 12;
+            engine.ballRad = 12;
         }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_7)){
-            ballRad = 14;
+            engine.ballRad = 14;
         } else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_8)){
-            ballRad = 16;
+            engine.ballRad = 16;
         } else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_9)){
-            ballRad = 18;
+            engine.ballRad = 18;
         } else if(Gdx.input.isKeyJustPressed(Input.Keys.R)){
-            circles.clear();
-        } else if(Gdx.input.isKeyJustPressed(Input.Keys.Q)){
+            engine.circles.clear();
+        }else if(Gdx.input.isKeyJustPressed(Input.Keys.C)){
+            colorSelection += 1;
+            if(colorSelection > colors.length-1){
+                colorSelection = 0;
+            }
+        }else if(Gdx.input.isKeyJustPressed(Input.Keys.Q)){
             Gdx.app.exit();
             System.exit(-1);
         }

@@ -82,7 +82,7 @@ public class Main extends ApplicationAdapter {
 
     }
 
-    public static void renderPause(ShapeRenderer shape){
+    public void renderPause(ShapeRenderer shape){
         shape.setColor(Color.WHITE);
         float pauseWidth = 15;
         float pauseHeight = 50;
@@ -92,7 +92,7 @@ public class Main extends ApplicationAdapter {
         shape.rect(center.x - 15, center.y - pauseHeight/2, pauseWidth,pauseHeight);
     }
 
-    public static void renderBallSpawn(ShapeRenderer shape){
+    public void renderBallSpawn(ShapeRenderer shape){
         if(dragInput.isDragging()){
             shape.setColor(Color.LIGHT_GRAY);
             shape.circle(dragInput.getInitialMousePosition().x, screenHeight - dragInput.getInitialMousePosition().y, engine.ballRad*meter);
@@ -124,27 +124,18 @@ public class Main extends ApplicationAdapter {
     }
 
 
-    public static void keyPressDetection(){
+    public void keyPressDetection(){
 
         if(!dragInput.isDragging() && dragInput.getDragDifference() != null){
             //Subtract y from screen height because the getY returns coords with top left origin, and it needs to be translated
             //to bottom left origin coordinates
-            engine.addBall(ballRad, (int) dragInput.getInitialMousePosition().x, (int) (screenHeight - dragInput.getInitialMousePosition().y), dragInput.getDragDifference().scl(2));
+            engine.addBall((int) dragInput.getInitialMousePosition().x, (int) (screenHeight - dragInput.getInitialMousePosition().y), dragInput.getDragDifference().scl(2));
             //makes it so drag difference goes back to null.
             dragInput.resetDrag();
         } else if(Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)){
-            engine.addBall(ballRad, Gdx.input.getX(), screenHeight - Gdx.input.getY(),new Vector2(0,0));
+            engine.addBall(Gdx.input.getX(), screenHeight - Gdx.input.getY(),new Vector2(0,0));
         }
         else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
-            if (collisionEnergyLoss) {
-                engine.horizontalEnergyLoss = 1;
-                engine.verticalEnergyLoss = 1;
-                engine.energyLoss = false;
-            } else {
-                engine.horizontalEnergyLoss = .95f;
-                engine.verticalEnergyLoss = .8f;
-                engine.energyLoss = true;
-            }
             engine.changeLoss();
         }else if (Gdx.input.isKeyJustPressed(Input.Keys.A)){
             engine.gravity.y -= 2*meter;

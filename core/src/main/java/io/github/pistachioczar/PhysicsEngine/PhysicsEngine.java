@@ -84,7 +84,7 @@ public class PhysicsEngine {
     }
 
     public void changeLoss() {
-        if(energyLoss) {
+        if(!energyLoss) {
             for (Circle circle : circles) {
                 circle.collisionLoss = .8f;
             }

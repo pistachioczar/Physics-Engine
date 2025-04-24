@@ -25,7 +25,6 @@ public class Main extends ApplicationAdapter {
     static List<Circle> circles;
     static int meter = 5;
     static Vec2 gravity = new Vec2(0,0);
-    static boolean collisionEnergyLoss = false;
     static int ballRad = 2;
     static DragInput dragInput = new DragInput();
     static boolean pause = false;
@@ -33,7 +32,7 @@ public class Main extends ApplicationAdapter {
     static ColorScheme[] colors;
     static int colorSelection;
     static PhysicsEngine engine;
-
+    boolean slowMo = false;
 
     @Override
     public void create(){
@@ -46,12 +45,13 @@ public class Main extends ApplicationAdapter {
         screen = new ScreenViewport();
         font = new BitmapFont();
         Gdx.input.setInputProcessor(dragInput);
-        ColorScheme background1 = new ColorScheme(Color.BLACK, Color.GOLD);
+//        ColorScheme background1 = new ColorScheme(Color.BLACK, Color.GOLD);
         ColorScheme background2 = new ColorScheme(Color.WHITE, Color.BLACK);
         ColorScheme background3 = new ColorScheme(Color.BLACK, Color.WHITE);
-        colors = new ColorScheme[] {background1, background2, background3};
+        colors = new ColorScheme[] {background2, background3};
         colorSelection = 0;
         engine = new PhysicsEngine(screenWidth, screenHeight, gravity, false, 1f, 1f);
+
 
 
     }
@@ -78,6 +78,7 @@ public class Main extends ApplicationAdapter {
         font.draw(batch, Integer.toString(engine.circles.size()), 30, screenHeight - 30);
         font.draw(batch, "Energy Loss: " + engine.energyLoss, 30, screenHeight - 60);
         font.draw(batch, "Gravity: " + engine.gravity.y/-10, 30, engine.screenHeight - 90);
+        font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 30, screenHeight - 120);
         batch.end();
 
     }
@@ -110,6 +111,10 @@ public class Main extends ApplicationAdapter {
     }
 
     public void update(double deltaTime){
+
+        if(slowMo){
+            deltaTime /= 10;
+        }
 
 
         keyPressDetection();
@@ -145,7 +150,14 @@ public class Main extends ApplicationAdapter {
             } else {
                 engine.gravity.y = 0;
             }
-        }else if(Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+        }else if(Gdx.input.isKeyJustPressed(Input.Keys.Z) && Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)){
+          if(!engine.circles.isEmpty()){
+              engine.circles.remove(engine.circles.size()-1);
+
+          }
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.MINUS)){
+            slowMo = !slowMo;
+        } else if(Gdx.input.isKeyJustPressed(Input.Keys.P)) {
             pause = !pause;
         }else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)){
             engine.ballRad = 2;
